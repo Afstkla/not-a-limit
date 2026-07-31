@@ -67,8 +67,8 @@ const severityOf = (spend) => {
 const orgLinkHtml = () => {
   if (!scopeId().startsWith("proj_")) return "";
   const known = tierCeiling
-    ? `Above this project sits your organization’s tier ceiling of <strong>$${esc(tierCeiling)}</strong> — the highest limit you are allowed to set, on a page that never mentions this project.`
-    : `Your organization’s limits page names a tier ceiling that this project sits under. This page never mentions it.`;
+    ? `Above this project sits a usage-tier ceiling — <strong>$${esc(tierCeiling)}</strong> when you last opened the organization editor. It depends on your tier, it is the highest limit you are allowed to set, and it lives on a page that never mentions this project.`
+    : `Above this project sits a usage-tier ceiling, named only in your organization’s editor. This page never mentions it.`;
   return `<div class="nal-orglink">${known} <a href="${ORG_LIMITS}">Organization limits →</a></div>`;
 };
 

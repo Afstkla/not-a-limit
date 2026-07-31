@@ -29,9 +29,11 @@ On `platform.openai.com/settings/**/limits` (project **and** organization):
   the "your actual costs may exceed this" fine print with what it means.
 - Rewrites the edit modal too: the misleading intro sentence, plus a note pointing at the toggle
   that says which control is the actual limit.
-- Carries your tier ceiling across pages. The organization editor names it — "your usage tier
-  defines the maximum monthly limit (...)" — and the project editor doesn't. Once seen, the
-  figure is shown on every project card, with a link to the organization limits page.
+- Carries your usage-tier ceiling across pages. The organization editor names it in parentheses
+  ("your usage tier defines the maximum monthly limit (...)"); the project editor omits it. Once
+  seen, the figure appears on project cards, attributed to when it was read, with a link to the
+  organization limits page. The number is whatever *your* org's editor said — it depends on your
+  usage tier and is never assumed.
 - A floating **⇄ Reality / OpenAI's version** button flips the whole patch on and off, so you can
   take identical before/after screenshots. The swap is animated.
 
