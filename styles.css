@@ -240,6 +240,15 @@ body.nal-on.nal-warn .nal-bar::after {
   white-space: nowrap;
 }
 
+[data-nal-alert] + .nal-new {
+  white-space: normal;
+  max-width: 60ch;
+}
+
+.nal-rant {
+  opacity: 0.62;
+}
+
 .nal-note {
   margin: 10px 0 4px;
   padding: 10px 12px;

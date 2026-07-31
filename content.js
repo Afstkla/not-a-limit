@@ -166,6 +166,21 @@ const patchCard = () => {
   return true;
 };
 
+const ALERT_LINE = /^Alert when spend reaches /;
+
+const patchAlerts = () => {
+  if (enforced === "on") return;
+  for (const el of document.querySelectorAll("span,div,p")) {
+    const text = directText(el);
+    if (!ALERT_LINE.test(text) || el.dataset.nalAlert) continue;
+    el.dataset.nalAlert = "1";
+    replaceInPlace(
+      el,
+      `${esc(text)} <span class="nal-rant">of the number you set above but obviously don’t stop serving requests because if you use up 100% of something clearly there’s more so just keep going until tokens or GPUs run out I guess</span>`
+    );
+  }
+};
+
 const patchModal = () => {
   const heading = [...document.querySelectorAll("h2")].find((h) => directText(h) === MODAL_TITLE);
   if (!heading) return;
@@ -244,6 +259,7 @@ const apply = () => {
   }
   mountSwitch();
   patchCard();
+  patchAlerts();
   patchModal();
   render();
 };
