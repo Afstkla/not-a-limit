@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Limitless (derogatory)",
+  "version": "1.0.0",
+  "description": "Rewrites OpenAI's spend limit pages to say what they actually mean: without \"Enforce a hard limit\", your spend limit is decoration.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://platform.openai.com/settings/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
