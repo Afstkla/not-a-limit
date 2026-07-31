@@ -80,8 +80,8 @@ const bannerHtml = (spend, level) => {
       <button class="nal-cta nal-cta-link" type="button">Where that switch lives →</button>
     </div>`;
   }
-  return `<div class="nal-banner nal-b-quiet">Not checked. A spend limit only stops spend when “Enforce a hard limit” is on, and this card never shows that switch’s state.
-    <button class="nal-cta nal-cta-link" type="button">Open the editor →</button>
+  return `<div class="nal-banner nal-b-quiet">Not enforced unless you turned it on — “Enforce a hard limit” is off by default, and this card never shows that switch’s state.
+    <button class="nal-cta nal-cta-link" type="button">Check the editor →</button>
   </div>`;
 };
 
@@ -115,7 +115,7 @@ const patchCard = () => {
   const title = findByText((t) => CARD_TITLES.includes(t), card);
   if (title) {
     const heading = directText(title);
-    const badge = { good: "ENFORCED", unknown: "NOT CHECKED" }[level] || "NOT ENFORCED";
+    const badge = level === "good" ? "ENFORCED" : "NOT ENFORCED";
     replaceInPlace(
       title,
       level === "good"
@@ -130,7 +130,7 @@ const patchCard = () => {
       good: "Requests are rejected once you reach this number. That is what a limit means.",
       loud: "Nothing stopped this number. “Enforce a hard limit” is off, so spend continues past it.",
       quiet: "“Enforce a hard limit” is off, so this number does not stop spend.",
-      unknown: "Whether this number stops anything depends on a switch this card doesn’t show.",
+      unknown: "Whether this number stops anything depends on a switch this card doesn’t show, which is off by default.",
     }[level]
   );
 
