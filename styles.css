@@ -71,13 +71,17 @@ body.nal-on.nal-loud [data-nal="card"] {
   box-shadow: 0 0 0 1px #d7261e, 0 8px 24px -12px rgba(215, 38, 30, 0.5) !important;
 }
 
-body.nal-loud [data-nal="card"],
-body.nal-loud [data-nal="card"] *,
-body.nal-loud .nal-unclip {
+body.nal-on.nal-warn [data-nal="card"] {
+  border-color: #e8a33d !important;
+}
+
+body:is(.nal-loud, .nal-warn) [data-nal="card"],
+body:is(.nal-loud, .nal-warn) [data-nal="card"] *,
+body:is(.nal-loud, .nal-warn) .nal-unclip {
   overflow: visible !important;
 }
 
-body.nal-loud .nal-clipx {
+body:is(.nal-loud, .nal-warn) .nal-clipx {
   overflow-x: clip !important;
 }
 
@@ -112,8 +116,20 @@ body.nal-on.nal-loud .nal-bar > * {
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
 }
 
-body.nal-on.nal-loud .nal-bar::after {
+body.nal-on:is(.nal-loud, .nal-warn) .nal-bar::after {
   transform: scaleX(1);
+}
+
+body.nal-on.nal-warn .nal-bar {
+  background: #f7e6c8 !important;
+}
+
+body.nal-on.nal-warn .nal-bar::after {
+  background: repeating-linear-gradient(
+    -45deg,
+    #e8a33d 0 6px,
+    rgba(232, 163, 61, 0.35) 6px 12px
+  );
 }
 
 .nal-tag {
@@ -136,6 +152,14 @@ body.nal-on.nal-loud .nal-bar::after {
   font-weight: 700;
 }
 
+.nal-tag-quiet,
+.nal-tag-unknown {
+  border-color: transparent;
+  background: #e8a33d;
+  color: #3a2a08;
+  font-weight: 700;
+}
+
 .nal-tag-good {
   color: #0f7b3f;
 }
@@ -146,19 +170,29 @@ body.nal-on.nal-loud .nal-bar::after {
   line-height: 1.55;
 }
 
-.nal-b-quiet,
 .nal-b-good {
   padding-top: 14px;
   border-top: 1px solid #e6e6e6;
   color: #5c5c5c;
 }
 
-.nal-b-loud {
+.nal-b-loud,
+.nal-b-warn {
   padding: 16px 18px;
   border-radius: 10px;
-  border-left: 4px solid #d7261e;
+  border-left: 4px solid;
+}
+
+.nal-b-loud {
+  border-left-color: #d7261e;
   background: #fdf1f0;
   color: #3b0d0a;
+}
+
+.nal-b-warn {
+  border-left-color: #e8a33d;
+  background: #fdf6ea;
+  color: #4a3308;
 }
 
 .nal-banner-title {
@@ -188,14 +222,8 @@ body.nal-on.nal-loud .nal-bar::after {
   cursor: pointer;
 }
 
-.nal-cta-link {
-  margin: 0 0 0 4px;
-  padding: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.nal-b-warn .nal-cta {
+  background: #7a5209;
 }
 
 .nal-note {

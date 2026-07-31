@@ -76,19 +76,23 @@ const bannerHtml = (spend, level) => {
     </div>`;
   }
   if (level === "quiet") {
-    return `<div class="nal-banner nal-b-quiet">Not enforced. “Enforce a hard limit” is off, so ${limit} won’t stop anything when you reach it.
-      <button class="nal-cta nal-cta-link" type="button">Where that switch lives →</button>
+    return `<div class="nal-banner nal-b-warn">
+      <div class="nal-banner-title">Nothing will stop this at ${limit}.</div>
+      <div class="nal-banner-body">“Enforce a hard limit” is off, so when spend reaches ${limit} the requests keep being served and billed. There is no wall at the end of that bar.</div>
+      <button class="nal-cta" type="button">Show me the switch that actually works →</button>
     </div>`;
   }
-  return `<div class="nal-banner nal-b-quiet">Not enforced unless you turned it on — “Enforce a hard limit” is off by default, and this card never shows that switch’s state.
-    <button class="nal-cta nal-cta-link" type="button">Check the editor →</button>
+  return `<div class="nal-banner nal-b-warn">
+    <div class="nal-banner-title">Probably nothing will stop this either.</div>
+    <div class="nal-banner-body">“Enforce a hard limit” is off by default and this card never shows that switch’s state. Until you check, assume ${limit} stops nothing.</div>
+    <button class="nal-cta" type="button">Check the editor →</button>
   </div>`;
 };
 
 const patchCard = () => {
   const info = findByText((t) => t === INFO_LINE);
   if (!info) {
-    document.body.classList.remove("nal-loud");
+    document.body.classList.remove("nal-loud", "nal-warn");
     return false;
   }
 
@@ -101,6 +105,7 @@ const patchCard = () => {
 
   const level = severityOf(spend);
   document.body.classList.toggle("nal-loud", level === "loud");
+  document.body.classList.toggle("nal-warn", level === "quiet" || level === "unknown");
 
   const stamp = level + "|" + spend.spent + "/" + spend.limit;
   if (card.dataset.nalState === stamp) return true;
@@ -210,7 +215,7 @@ const render = () => {
 
 const apply = () => {
   if (!onLimitsPage()) {
-    document.body.classList.remove("nal-loud");
+    document.body.classList.remove("nal-loud", "nal-warn");
     render();
     return;
   }
