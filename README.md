@@ -22,7 +22,18 @@ It means *we will keep billing you past this number, indefinitely.*
 
 ## What the extension does
 
-On `platform.openai.com/settings/**/limits` (project **and** organization):
+It turns:
+
+<img width="783" height="413" alt="image" src="https://github.com/user-attachments/assets/a595c14a-930f-42dd-a59e-65b0fdac5f8c" />
+
+into:
+
+<img width="1126" height="721" alt="image" src="https://github.com/user-attachments/assets/27fe5e7e-1a17-42af-a0c2-75ee7a9144ae" />
+
+which is a lot clearer and more honest.
+
+
+In slightly more detail, on `platform.openai.com/settings/**/limits` (project **and** organization):
 
 - Reads the real state of the "Enforce a hard limit" toggle and remembers it per project/org.
 - Rewrites the heading to "spend ~~limit~~ suggestion" with a `NOT ENFORCED` badge, and replaces
