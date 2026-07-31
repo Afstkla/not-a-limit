@@ -258,7 +258,21 @@ const render = () => {
   }
 };
 
+let scope = null;
+
+const syncScope = () => {
+  const id = scopeId();
+  if (id === scope) return;
+  scope = id;
+  enforced = "unknown";
+  chrome.storage?.local.get(["nal:" + id], (stored) => {
+    enforced = stored["nal:" + id] ?? "unknown";
+    apply();
+  });
+};
+
 const apply = () => {
+  syncScope();
   if (!onLimitsPage()) {
     document.body.classList.remove("nal-loud", "nal-warn");
     render();
@@ -294,8 +308,7 @@ const observe = () =>
     attributeFilter: ["aria-checked"],
   });
 
-chrome.storage?.local.get(["nal:" + scopeId(), "nal:mode", "nal:tier"], (stored) => {
-  enforced = stored["nal:" + scopeId()] ?? "unknown";
+chrome.storage?.local.get(["nal:mode", "nal:tier"], (stored) => {
   honest = stored["nal:mode"] ?? true;
   tierCeiling = stored["nal:tier"] ?? null;
   apply();
