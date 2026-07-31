@@ -62,8 +62,11 @@ Everything is found by visible text and ARIA roles: the info line, the card head
 `button[role="switch"]` inside the "Enforce a hard limit" label. If OpenAI changes the copy,
 the extension quietly does nothing rather than breaking the page.
 
-Before publishing to the Chrome Web Store you'll need icons (`16/48/128px`) added to
-`manifest.json` — omitted here because unpacked loading doesn't require them.
+## Publishing
+
+`zip -r not-a-limit-1.1.0.zip manifest.json content.js styles.css icons LICENSE` produces the
+Chrome Web Store upload. Icons are rendered from `icon.svg` with
+`rsvg-convert -w N -h N icon.svg -o icons/iconN.png`.
 
 ## License
 
