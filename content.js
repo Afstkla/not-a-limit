@@ -29,7 +29,7 @@ const replaceInPlace = (original, html) => {
 };
 
 const spendFromCard = (card) => {
-  const m = card.innerText.match(/\$([\d,]+\.\d{2})\s*\/\s*\$([\d,]+\.\d{2})/);
+  const m = card.innerText.match(/\$([\d,]+(?:\.\d{2})?)\s*\/\s*\$([\d,]+(?:\.\d{2})?)/);
   if (!m) return null;
   const num = (s) => Number(s.replace(/,/g, ""));
   return { spent: num(m[1]), limit: num(m[2]), limitText: "$" + m[2] };
@@ -57,12 +57,12 @@ const markProgressBar = (card) => {
 
 const severityOf = (spend) => {
   if (enforced === "on") return "good";
-  if (enforced === "off") return spend && spend.spent > spend.limit ? "loud" : "quiet";
+  if (enforced === "off") return spend.spent > spend.limit ? "loud" : "quiet";
   return "unknown";
 };
 
 const bannerHtml = (spend, level) => {
-  const limit = spend ? esc(spend.limitText) : "the number above";
+  const limit = esc(spend.limitText);
 
   if (level === "good") {
     return `<div class="nal-banner nal-b-good">Enforced. Requests are rejected once spend reaches ${limit}.</div>`;
@@ -97,10 +97,12 @@ const patchCard = () => {
   if (!card) return false;
 
   const spend = spendFromCard(card);
+  if (!spend) return false;
+
   const level = severityOf(spend);
   document.body.classList.toggle("nal-loud", level === "loud");
 
-  const stamp = level + "|" + (spend ? spend.spent + "/" + spend.limit : "pending");
+  const stamp = level + "|" + spend.spent + "/" + spend.limit;
   if (card.dataset.nalState === stamp) return true;
   card.querySelectorAll(".nal-new").forEach((n) => n.remove());
   card.querySelectorAll(".nal-orig").forEach((n) => n.classList.remove("nal-orig"));
