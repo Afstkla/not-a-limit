@@ -84,7 +84,7 @@ const bannerHtml = (spend, level) => {
   }
   return `<div class="nal-banner nal-b-warn">
     <div class="nal-banner-title">Probably nothing will stop this either.</div>
-    <div class="nal-banner-body">“Enforce a hard limit” is off by default and this card never shows that switch’s state. Until you check, assume ${limit} stops nothing.</div>
+    <div class="nal-banner-body">“Enforce a hard limit” is off by default and this card never shows that switch’s state. Until you check, assume ${limit} looks nice but doesn’t solve anything.</div>
     <button class="nal-cta" type="button">Check the editor →</button>
   </div>`;
 };
@@ -117,6 +117,14 @@ const patchCard = () => {
   markProgressBar(card);
   clearEscapeRoute(card);
 
+  const editButton = [...card.querySelectorAll("button")].find(
+    (b) => b.innerText.trim() === MODAL_TITLE
+  );
+  const editLabel = editButton && findByText((t) => t === MODAL_TITLE, editButton);
+  if (editLabel && level !== "good") {
+    replaceInPlace(editLabel, "Edit spend <s>limit</s> suggestion");
+  }
+
   const title = findByText((t) => CARD_TITLES.includes(t), card);
   if (title) {
     const heading = directText(title);
@@ -140,11 +148,7 @@ const patchCard = () => {
   );
 
   card.insertAdjacentHTML("beforeend", `<div class="nal-new">${bannerHtml(spend, level)}</div>`);
-  card.querySelector(".nal-cta")?.addEventListener("click", () => {
-    [...card.querySelectorAll("button")]
-      .find((b) => b.innerText.trim() === MODAL_TITLE)
-      ?.click();
-  });
+  card.querySelector(".nal-cta")?.addEventListener("click", () => editButton?.click());
   return true;
 };
 
