@@ -169,7 +169,14 @@ const patchCard = () => {
 const ALERT_LINE = /^Alert when spend reaches /;
 
 const patchAlerts = () => {
-  if (enforced === "on") return;
+  if (enforced === "on") {
+    document.querySelectorAll("[data-nal-alert]").forEach((el) => {
+      el.nextElementSibling?.remove();
+      el.classList.remove("nal-orig");
+      delete el.dataset.nalAlert;
+    });
+    return;
+  }
   for (const el of document.querySelectorAll("span,div,p")) {
     const text = directText(el);
     if (!ALERT_LINE.test(text) || el.dataset.nalAlert) continue;
