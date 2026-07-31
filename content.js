@@ -21,9 +21,9 @@ let honest = true;
 
 const replaceInPlace = (original, html) => {
   const copy = original.cloneNode(true);
-  copy.classList.add("ltd-new");
+  copy.classList.add("nal-new");
   copy.innerHTML = html;
-  original.classList.add("ltd-orig");
+  original.classList.add("nal-orig");
   original.after(copy);
   return copy;
 };
@@ -38,9 +38,9 @@ const spendFromCard = (card) => {
 const clearEscapeRoute = (card) => {
   for (let el = card.parentElement; el && el !== document.body; el = el.parentElement) {
     const overflow = getComputedStyle(el).overflowX;
-    if (overflow === "hidden") el.classList.add("ltd-unclip");
+    if (overflow === "hidden") el.classList.add("nal-unclip");
     if (overflow === "auto" || overflow === "scroll") {
-      el.classList.add("ltd-clipx");
+      el.classList.add("nal-clipx");
       return;
     }
   }
@@ -49,43 +49,46 @@ const clearEscapeRoute = (card) => {
 const markProgressBar = (card) => {
   for (const el of card.querySelectorAll("div")) {
     if (el.offsetHeight > 0 && el.offsetHeight <= 10 && el.offsetWidth > 200) {
-      el.classList.add("ltd-bar");
+      el.classList.add("nal-bar");
       return;
     }
   }
 };
 
-const bannerHtml = (spend) => {
-  const limit = spend ? esc(spend.limitText) : "your limit";
-  const over =
-    spend && spend.spent > spend.limit
-      ? ` You are at <strong>${Math.round((spend.spent / spend.limit) * 100)}%</strong> of it right now.`
-      : "";
+const severityOf = (spend) => {
+  if (enforced === "on") return "good";
+  if (enforced === "off") return spend && spend.spent > spend.limit ? "loud" : "quiet";
+  return "unknown";
+};
 
-  if (enforced === "on") {
-    return `<div class="ltd-banner ltd-good">
-      <div class="ltd-banner-title">This one is real.</div>
-      <div class="ltd-banner-body">“Enforce a hard limit” is on, so requests get rejected once spend reaches ${limit}.</div>
+const bannerHtml = (spend, level) => {
+  const limit = spend ? esc(spend.limitText) : "the number above";
+
+  if (level === "good") {
+    return `<div class="nal-banner nal-b-good">Enforced. Requests are rejected once spend reaches ${limit}.</div>`;
+  }
+  if (level === "loud") {
+    const pct = Math.round((spend.spent / spend.limit) * 100);
+    return `<div class="nal-banner nal-b-loud">
+      <div class="nal-banner-title">This limit did not limit anything.</div>
+      <div class="nal-banner-body">“Enforce a hard limit” is off, so nothing stopped your spend at ${limit}. You are at <strong>${pct}%</strong> of it, and requests are still being served and billed.</div>
+      <button class="nal-cta" type="button">Show me the switch that actually works →</button>
     </div>`;
   }
-  if (enforced === "off") {
-    return `<div class="ltd-banner">
-      <div class="ltd-banner-title">This limit does not limit anything.</div>
-      <div class="ltd-banner-body">“Enforce a hard limit” is switched <strong>off</strong>, so nothing stops your spend at ${limit}. Requests keep being served and billed past it, forever.${over} The number above is a notification threshold with a misleading name.</div>
-      <button class="ltd-cta" type="button">Show me the switch that actually works →</button>
+  if (level === "quiet") {
+    return `<div class="nal-banner nal-b-quiet">Not enforced. “Enforce a hard limit” is off, so ${limit} won’t stop anything when you reach it.
+      <button class="nal-cta nal-cta-link" type="button">Where that switch lives →</button>
     </div>`;
   }
-  return `<div class="ltd-banner">
-    <div class="ltd-banner-title">Unverified — and this page won’t tell you.</div>
-    <div class="ltd-banner-body">A spend limit only stops spend when “Enforce a hard limit” is on. That switch is hidden inside the editor, and nothing on this card reveals its state.${over}</div>
-    <button class="ltd-cta" type="button">Open the editor and check →</button>
+  return `<div class="nal-banner nal-b-quiet">Not checked. A spend limit only stops spend when “Enforce a hard limit” is on, and this card never shows that switch’s state.
+    <button class="nal-cta nal-cta-link" type="button">Open the editor →</button>
   </div>`;
 };
 
 const patchCard = () => {
   const info = findByText((t) => t === INFO_LINE);
   if (!info) {
-    document.body.classList.remove("ltd-danger");
+    document.body.classList.remove("nal-loud");
     return false;
   }
 
@@ -93,38 +96,44 @@ const patchCard = () => {
   while (card && !CARD_TITLES.some((t) => card.innerText.includes(t))) card = card.parentElement;
   if (!card) return false;
 
-  document.body.classList.toggle("ltd-danger", enforced !== "on");
-
-  if (card.dataset.ltdState === enforced) return true;
-  card.querySelectorAll(".ltd-new").forEach((n) => n.remove());
-  card.querySelectorAll(".ltd-orig").forEach((n) => n.classList.remove("ltd-orig"));
-  card.dataset.ltd = "card";
-  card.dataset.ltdState = enforced;
-
   const spend = spendFromCard(card);
+  const level = severityOf(spend);
+  document.body.classList.toggle("nal-loud", level === "loud");
+
+  const stamp = level + "|" + (spend ? spend.spent + "/" + spend.limit : "pending");
+  if (card.dataset.nalState === stamp) return true;
+  card.querySelectorAll(".nal-new").forEach((n) => n.remove());
+  card.querySelectorAll(".nal-orig").forEach((n) => n.classList.remove("nal-orig"));
+  card.dataset.nal = "card";
+  card.dataset.nalState = stamp;
+
   markProgressBar(card);
   clearEscapeRoute(card);
 
   const title = findByText((t) => CARD_TITLES.includes(t), card);
   if (title) {
-    const word = directText(title).replace("spend limit", "spend");
+    const heading = directText(title);
+    const badge = { good: "ENFORCED", unknown: "NOT CHECKED" }[level] || "NOT ENFORCED";
     replaceInPlace(
       title,
-      enforced === "on"
-        ? `${esc(directText(title))} <span class="ltd-tag ltd-tag-good">ENFORCED</span>`
-        : `${esc(word)} <s>limit</s> suggestion <span class="ltd-tag">NOT ENFORCED</span>`
+      level === "good"
+        ? `${esc(heading)} <span class="nal-tag nal-tag-good">${badge}</span>`
+        : `${esc(heading.replace("spend limit", "spend"))} <s>limit</s> suggestion <span class="nal-tag nal-tag-${level}">${badge}</span>`
     );
   }
 
   replaceInPlace(
     info,
-    enforced === "on"
-      ? "Requests are rejected once you reach this number. That is what a limit means."
-      : "Nothing is stopping this number. “Enforce a hard limit” is off, so spend continues past it."
+    {
+      good: "Requests are rejected once you reach this number. That is what a limit means.",
+      loud: "Nothing stopped this number. “Enforce a hard limit” is off, so spend continues past it.",
+      quiet: "“Enforce a hard limit” is off, so this number does not stop spend.",
+      unknown: "Whether this number stops anything depends on a switch this card doesn’t show.",
+    }[level]
   );
 
-  card.insertAdjacentHTML("beforeend", `<div class="ltd-new">${bannerHtml(spend)}</div>`);
-  card.querySelector(".ltd-cta")?.addEventListener("click", () => {
+  card.insertAdjacentHTML("beforeend", `<div class="nal-new">${bannerHtml(spend, level)}</div>`);
+  card.querySelector(".nal-cta")?.addEventListener("click", () => {
     [...card.querySelectorAll("button")]
       .find((b) => b.innerText.trim() === MODAL_TITLE)
       ?.click();
@@ -145,14 +154,14 @@ const patchModal = () => {
     const observed = sw.getAttribute("aria-checked") === "true" ? "on" : "off";
     if (observed !== enforced) {
       enforced = observed;
-      chrome.storage?.local.set({ ["ltd:" + scopeId()]: enforced });
+      chrome.storage?.local.set({ ["nal:" + scopeId()]: enforced });
     }
   }
 
-  if (modal.dataset.ltdState === enforced) return;
-  modal.querySelectorAll(".ltd-new").forEach((n) => n.remove());
-  modal.querySelectorAll(".ltd-orig").forEach((n) => n.classList.remove("ltd-orig"));
-  modal.dataset.ltdState = enforced;
+  if (modal.dataset.nalState === enforced) return;
+  modal.querySelectorAll(".nal-new").forEach((n) => n.remove());
+  modal.querySelectorAll(".nal-orig").forEach((n) => n.classList.remove("nal-orig"));
+  modal.dataset.nalState = enforced;
 
   const desc = findByText((t) => t.startsWith(MODAL_DESC), modal);
   if (desc) {
@@ -168,38 +177,38 @@ const patchModal = () => {
     row.insertAdjacentHTML(
       "afterend",
       enforced === "on"
-        ? `<div class="ltd-new ltd-note ltd-note-good">This is what makes the number above real. Switch it off and the limit becomes decoration.</div>`
-        : `<div class="ltd-new ltd-note"><strong>↑ This is the limit.</strong> While it is off, OpenAI keeps serving and billing requests past the number above. No cap, no cutoff, no email that stops anything.</div>`
+        ? `<div class="nal-new nal-note nal-note-good">This is what makes the number above real. Switch it off and the limit becomes decoration.</div>`
+        : `<div class="nal-new nal-note"><strong>↑ This is the limit.</strong> While it is off, requests are served and billed past the number above.</div>`
     );
   }
 };
 
 const mountSwitch = () => {
-  if (document.getElementById("ltd-switch")) return;
+  if (document.getElementById("nal-switch")) return;
   const el = document.createElement("button");
-  el.id = "ltd-switch";
+  el.id = "nal-switch";
   el.type = "button";
   el.addEventListener("click", () => {
     honest = !honest;
-    chrome.storage?.local.set({ "ltd:mode": honest });
+    chrome.storage?.local.set({ "nal:mode": honest });
     render();
   });
   document.body.append(el);
 };
 
 const render = () => {
-  document.body.classList.toggle("ltd-on", honest);
-  const el = document.getElementById("ltd-switch");
+  document.body.classList.toggle("nal-on", honest);
+  const el = document.getElementById("nal-switch");
   if (el) {
     el.textContent = honest ? "Reality" : "OpenAI’s version";
-    el.classList.toggle("ltd-switch-off", !honest);
+    el.classList.toggle("nal-switch-off", !honest);
     el.style.display = onLimitsPage() ? "" : "none";
   }
 };
 
 const apply = () => {
   if (!onLimitsPage()) {
-    document.body.classList.remove("ltd-danger");
+    document.body.classList.remove("nal-loud");
     render();
     return;
   }
@@ -232,9 +241,9 @@ const observe = () =>
     attributeFilter: ["aria-checked"],
   });
 
-chrome.storage?.local.get(["ltd:" + scopeId(), "ltd:mode"], (stored) => {
-  enforced = stored["ltd:" + scopeId()] ?? "unknown";
-  honest = stored["ltd:mode"] ?? true;
+chrome.storage?.local.get(["nal:" + scopeId(), "nal:mode"], (stored) => {
+  enforced = stored["nal:" + scopeId()] ?? "unknown";
+  honest = stored["nal:mode"] ?? true;
   apply();
   observe();
 });

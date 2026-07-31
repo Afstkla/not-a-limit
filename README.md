@@ -1,4 +1,4 @@
-# Limitless (derogatory)
+# Not A Limit
 
 A Chrome extension that rewrites OpenAI's spend limit pages to say what they actually mean.
 
@@ -25,15 +25,21 @@ It means *we will keep billing you past this number, indefinitely.*
 On `platform.openai.com/settings/**/limits` (project **and** organization):
 
 - Reads the real state of the "Enforce a hard limit" toggle and remembers it per project/org.
-- **Not enforced** → the card turns red, the heading becomes "spend ~~limit~~ suggestion" with a
-  `NOT ENFORCED` badge, the progress bar runs off the edge of the card, and a banner spells out
-  that nothing is stopping the number — including how far past it you already are.
-- **Enforced** → everything goes calm and green: "This one is real."
-- **Not checked yet** → says so honestly, rather than guessing.
+- Rewrites the heading to "spend ~~limit~~ suggestion" with a `NOT ENFORCED` badge, and replaces
+  the "your actual costs may exceed this" fine print with what it means.
 - Rewrites the edit modal too: the misleading intro sentence, plus a note pointing at the toggle
   that says which control is the actual limit.
 - A floating **⇄ Reality / OpenAI's version** button flips the whole patch on and off, so you can
-  take identical before/after screenshots.
+  take identical before/after screenshots. The swap is animated.
+
+The volume scales to the situation, so it stays quiet when nothing is wrong:
+
+| State | Treatment |
+| --- | --- |
+| Not enforced, under the limit | Grey one-liner. Deadpan, no alarm. |
+| Not enforced, **over** the limit | Red card, and the progress bar breaks out of the card and runs off the screen — because that's what your spend did. |
+| Enforced | "Enforced. Requests are rejected once spend reaches $X." |
+| Not checked yet | Says so, rather than guessing. |
 
 It never changes your billing settings. The "show me the switch that actually works" button just
 opens the editor — flipping the toggle stays your click.
