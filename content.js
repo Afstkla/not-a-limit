@@ -16,8 +16,11 @@ const onLimitsPage = () => location.pathname.endsWith("/limits");
 
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 
+const ORG_LIMITS = "/settings/organization/limits";
+
 let enforced = "unknown";
 let honest = true;
+let tierCeiling = null;
 
 const replaceInPlace = (original, html) => {
   const copy = original.cloneNode(true);
@@ -61,6 +64,14 @@ const severityOf = (spend) => {
   return "unknown";
 };
 
+const orgLinkHtml = () => {
+  if (!scopeId().startsWith("proj_")) return "";
+  const known = tierCeiling
+    ? `Above this project sits your organization’s tier ceiling of <strong>$${esc(tierCeiling)}</strong> — the highest limit you are allowed to set, on a page that never mentions this project.`
+    : `Your organization’s limits page names a tier ceiling that this project sits under. This page never mentions it.`;
+  return `<div class="nal-orglink">${known} <a href="${ORG_LIMITS}">Organization limits →</a></div>`;
+};
+
 const bannerHtml = (spend, level) => {
   const limit = esc(spend.limitText);
 
@@ -73,6 +84,7 @@ const bannerHtml = (spend, level) => {
       <div class="nal-banner-title">This limit did not limit anything.</div>
       <div class="nal-banner-body">“Enforce a hard limit” is off, so nothing stopped your spend at ${limit}. You are at <strong>${pct}%</strong> of it, and requests are still being served and billed.</div>
       <button class="nal-cta" type="button">Show me the switch that actually works →</button>
+    ${orgLinkHtml()}
     </div>`;
   }
   if (level === "quiet") {
@@ -80,12 +92,14 @@ const bannerHtml = (spend, level) => {
       <div class="nal-banner-title">Nothing will stop this at ${limit}.</div>
       <div class="nal-banner-body">“Enforce a hard limit” is off, so when spend reaches ${limit} the requests keep being served and billed. There is no wall at the end of that bar.</div>
       <button class="nal-cta" type="button">Show me the switch that actually works →</button>
+    ${orgLinkHtml()}
     </div>`;
   }
   return `<div class="nal-banner nal-b-warn">
     <div class="nal-banner-title">Probably nothing will stop this either.</div>
     <div class="nal-banner-body">“Enforce a hard limit” is off by default and this card never shows that switch’s state. Until you check, assume ${limit} looks nice but doesn’t solve anything.</div>
     <button class="nal-cta" type="button">Check the editor →</button>
+  ${orgLinkHtml()}
   </div>`;
 };
 
@@ -107,7 +121,7 @@ const patchCard = () => {
   document.body.classList.toggle("nal-loud", level === "loud");
   document.body.classList.toggle("nal-warn", level === "quiet" || level === "unknown");
 
-  const stamp = level + "|" + spend.spent + "/" + spend.limit;
+  const stamp = level + "|" + spend.spent + "/" + spend.limit + "|" + tierCeiling;
   if (card.dataset.nalState === stamp) return true;
   card.querySelectorAll(".nal-new").forEach((n) => n.remove());
   card.querySelectorAll(".nal-orig").forEach((n) => n.classList.remove("nal-orig"));
@@ -175,6 +189,11 @@ const patchModal = () => {
   modal.dataset.nalState = enforced;
 
   const desc = findByText((t) => t.startsWith(MODAL_DESC), modal);
+  const ceiling = desc && directText(desc).match(/\(\$([\d,]+)\)/);
+  if (ceiling && ceiling[1] !== tierCeiling) {
+    tierCeiling = ceiling[1];
+    chrome.storage?.local.set({ "nal:tier": tierCeiling });
+  }
   if (desc) {
     replaceInPlace(
       desc,
@@ -252,9 +271,10 @@ const observe = () =>
     attributeFilter: ["aria-checked"],
   });
 
-chrome.storage?.local.get(["nal:" + scopeId(), "nal:mode"], (stored) => {
+chrome.storage?.local.get(["nal:" + scopeId(), "nal:mode", "nal:tier"], (stored) => {
   enforced = stored["nal:" + scopeId()] ?? "unknown";
   honest = stored["nal:mode"] ?? true;
+  tierCeiling = stored["nal:tier"] ?? null;
   apply();
   observe();
 });

@@ -226,6 +226,20 @@ body.nal-on.nal-warn .nal-bar::after {
   background: #7a5209;
 }
 
+.nal-orglink {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 12.5px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.nal-orglink a {
+  color: inherit;
+  white-space: nowrap;
+}
+
 .nal-note {
   margin: 10px 0 4px;
   padding: 10px 12px;
